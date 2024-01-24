@@ -7,7 +7,7 @@ const port=process.env.PORT || 5000;
 
 // middlewire
 app.use(cors());
-app.use(express());
+app.use(express.json());
 
 
 
@@ -27,13 +27,33 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+      client.connect();
+
+     const articlesCollection=client.db('AbcNews').collection('articles');
+     const publishersCollection=client.db('AbcNews').collection('publishers');
+     const reviewsCollection=client.db('AbcNews').collection('reviews');
+
+
+     app.get('/reviews',async(req,res)=>{
+      const result=await reviewsCollection.find().toArray();
+      res.send(result);
+     })
+     app.get('/publishers',async(req,res)=>{
+      const result=await publishersCollection.find().toArray();
+      res.send(result);
+     })
+     app.get('/articles',async(req,res)=>{
+      const result=await articlesCollection.find().toArray();
+      res.send(result);
+     })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
