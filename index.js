@@ -74,8 +74,7 @@ async function run() {
     }
     next();
 
-  }
-    
+  }    
     
     // user releted api
      app.post('/users',async(req,res)=>{
@@ -103,6 +102,7 @@ async function run() {
 
      app.get('/users/admin/:email',verifyToken,async(req,res)=>{
       const email=req.params.email;
+      console.log(email);
       // console.log('user email:',email,'decoded : ',req.decoded.email);
       if(email !==req.decoded.email){
         return res.status(403).send({message:'Forbidden Access'});
@@ -142,11 +142,11 @@ async function run() {
       const result=await reviewsCollection.find().toArray();
       res.send(result);
      })
-     app.get('/publishers',verifyToken,verifyAdmin,async(req,res)=>{
+     app.get('/publishers',verifyToken,async(req,res)=>{
       const result=await publishersCollection.find().toArray();
       res.send(result);
      })
-     app.get('/articles',verifyToken,async(req,res)=>{
+     app.get('/articles',async(req,res)=>{
       const result=await articlesCollection.find().toArray();
       res.send(result);
      })
