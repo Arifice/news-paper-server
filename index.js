@@ -100,7 +100,7 @@ async function run() {
       res.send(result);
      })
 
-     app.get('/users/admin/:email',verifyToken,async(req,res)=>{
+     app.get('/users/admin/:email',verifyToken, async(req,res)=>{
       const email=req.params.email;
       console.log(email);
       // console.log('user email:',email,'decoded : ',req.decoded.email);
@@ -142,12 +142,32 @@ async function run() {
       const result=await reviewsCollection.find().toArray();
       res.send(result);
      })
-     app.get('/publishers',verifyToken,async(req,res)=>{
+     app.get('/publishers',async(req,res)=>{
       const result=await publishersCollection.find().toArray();
+      res.send(result);
+     })
+
+     app.post('/articles',async(req,res)=>{
+      const article=req.body;
+      const result=await articlesCollection.insertOne(article);
       res.send(result);
      })
      app.get('/articles',async(req,res)=>{
       const result=await articlesCollection.find().toArray();
+      res.send(result);
+     })
+     app.get('/articles/:id',async(req,res)=>{      
+      const id=req.params.id;
+      console.log(id);
+      const query={_id:new ObjectId(id)};
+      const result=await articlesCollection.findOne(query);
+      res.send(result);
+     })
+
+     app.delete('/articles/:id',verifyToken,verifyAdmin,async(req,res)=>{
+      const id=req.params.id;
+      const query={_id:new ObjectId(id)};
+      const result=await articlesCollection.deleteOne(query);
       res.send(result);
      })
 
