@@ -102,7 +102,7 @@ async function run() {
 
      app.get('/users/admin/:email',verifyToken, async(req,res)=>{
       const email=req.params.email;
-      console.log(email);
+      // console.log(email);
       // console.log('user email:',email,'decoded : ',req.decoded.email);
       if(email !==req.decoded.email){
         return res.status(403).send({message:'Forbidden Access'});
@@ -137,15 +137,53 @@ async function run() {
       res.send(result);
     })
 
+    // review related api
 
      app.get('/reviews',async(req,res)=>{
       const result=await reviewsCollection.find().toArray();
+      res.send(result);
+     })
+
+    // publishers related api
+
+     app.post('/publishers',async(req,res)=>{
+      const publisher=req.body;
+      const result=await publishersCollection.insertOne(publisher);
       res.send(result);
      })
      app.get('/publishers',async(req,res)=>{
       const result=await publishersCollection.find().toArray();
       res.send(result);
      })
+     app.get('/publishers/:id',async(req,res)=>{
+      const id=req.params.id;
+      const query={_id:new ObjectId(id)};
+      const result=await publishersCollection.findOne(query);
+      res.send(result);
+     })
+     app.delete('/publishers/:id',async(req,res)=>{
+      const id=req.params.id;
+      const query={_id:new ObjectId(id)};
+      const result=await publishersCollection.deleteOne(query);
+      res.send(result);
+     })
+     app.patch('/publishers/:id',async(req,res)=>{
+      const id=req.params.id;
+      const updatePublisher=req.body;
+      const query={_id:new ObjectId(id)};
+      const updateDoc={
+        $set:{
+            name:updatePublisher.name,
+            email:updatePublisher.email,
+            image:updatePublisher.image
+        }
+      }
+      const result=await publishersCollection.updateOne(query,updateDoc);
+      res.send(result);
+     })
+
+
+    // articles related api
 
      app.post('/articles',async(req,res)=>{
       const article=req.body;
@@ -156,13 +194,44 @@ async function run() {
       const result=await articlesCollection.find().toArray();
       res.send(result);
      })
+     app.get('/articles/user/:email',async(req,res)=>{
+      const email=req.params.email;
+      const query={userEmail:email};
+      const result=await articlesCollection.find(query).toArray();
+      res.send(result);
+     })
+     app.get('/articles/premium',async(req,res)=>{      
+      const query={type:'premium'};
+      const result=await articlesCollection.find(query).toArray();
+      res.send(result);
+     })
      app.get('/articles/:id',async(req,res)=>{      
       const id=req.params.id;
-      console.log(id);
+      // console.log(id);
       const query={_id:new ObjectId(id)};
       const result=await articlesCollection.findOne(query);
       res.send(result);
      })
+     app.patch('/articles/:id',verifyToken,async(req,res)=>{
+      const id=req.params.id;
+      const updateArticle=req.body;
+      // console.log(updateArticle,id);
+      const filter={_id:new ObjectId(id)};
+      const updateDoc={
+        $set:{
+          title:updateArticle.title,
+          publisher:updateArticle.publisher,
+          userName:updateArticle.userName,
+          userEmail:updateArticle.userEmail,
+          publisherEmail:updateArticle.publisherEmail,
+          description:updateArticle.description,               
+          image:updateArticle.image,
+          tags:updateArticle.tags,
+        }
+      }
+      const result =await articlesCollection.updateOne(filter,updateDoc);
+      res.send(result);
+    })
 
      app.delete('/articles/:id',verifyToken,verifyAdmin,async(req,res)=>{
       const id=req.params.id;
