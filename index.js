@@ -39,21 +39,17 @@ async function run() {
     const paymentsCollection = client.db('AbcNews').collection('payments');
     // jwt related api
 
-    app.post('/jwt', async (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' });
-      res.send({ token });
-    })
+    
 
 
     // middlewire
     const logger=async(req,res,next)=>{
-      console.log('called:',req.host, req.method, req.url,);
+      console.log('called:',req.host, req.method, req.url);
       next();
     }
     const verifyToken = (req, res, next) => {
-      // console.log('inside verify token :',req.headers?.authorization); 
-      if (!req.headers?.authorization) {
+      console.log('inside verify token :',req.headers?.authorization); 
+      if (!req.headers?.authorization) {        
         return res.status(401).send({ message: 'Forbidden access' });
       }
       const token = req.headers?.authorization.split(' ')[1];
@@ -63,7 +59,7 @@ async function run() {
           return res.status(401).send({ message: 'Unathorized access' });
         }
         req.decoded = decoded;
-        // console.log('from verify token',decoded);
+        console.log('from verify token',decoded);
         next();
       })
     }
@@ -82,6 +78,14 @@ async function run() {
       next();
 
     }
+
+    app.post('/jwt',logger, async (req, res) => {
+      const user = req.body;
+      console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' });
+      console.log('jwt token',token);
+      res.send({ token });
+    })
 
     // user releted api
     app.post('/users', logger, async (req, res) => {
@@ -106,7 +110,7 @@ async function run() {
       const result = await usersCollection.findOne(query);
       res.send(result);
     })
-    app.patch('/users/:email',logger,verifyToken, async (req, res) => {
+    app.patch('/users/:email',logger, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const updateinfo = req.body;
@@ -125,10 +129,10 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/users/admin/:email',logger, verifyToken, async (req, res) => {
+    app.get('/users/admin/:email',logger, verifyToken,async (req, res) => {
       const email = req.params.email;
-      // console.log(email);
-      // console.log('user email:',email,'decoded : ',req.decoded.email);
+      console.log(email);
+      console.log('user email:',email,'decoded : ',req.decoded?.email);
       if (email !== req.decoded?.email) {
         return res.status(403).send({ message: 'Forbidden Access' });
       }
