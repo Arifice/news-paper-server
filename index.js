@@ -44,11 +44,11 @@ async function run() {
 
     // middlewire
     const logger=async(req,res,next)=>{
-      console.log('called:',req.host, req.method, req.url);
+      // console.log('called:',req.host, req.method, req.url);
       next();
     }
     const verifyToken = (req, res, next) => {
-      console.log('inside verify token :',req.headers?.authorization); 
+      // console.log('inside verify token :',req.headers?.authorization); 
       if (!req.headers?.authorization) {        
         return res.status(401).send({ message: 'Forbidden access' });
       }
@@ -99,18 +99,18 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/users', logger,async (req, res) => {
+    app.get('/users', logger,verifyToken,verifyAdmin,async (req, res) => {
       console.log(req.headers)
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
-    app.get('/users/:email',logger ,async (req, res) => {
+    app.get('/users/:email',logger,verifyToken,async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const result = await usersCollection.findOne(query);
       res.send(result);
     })
-    app.patch('/users/:email',logger, async (req, res) => {
+    app.patch('/users/:email',logger,verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const updateinfo = req.body;
@@ -122,14 +122,14 @@ async function run() {
       const result = await usersCollection.updateOne(query, updateDoc);
       res.send(result);
     })
-    app.get('/users/:id',logger, async (req, res) => {
+    app.get('/users/:id',logger,verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await usersCollection.findOne(query);
       res.send(result);
     })
 
-    app.get('/users/admin/:email',logger, verifyToken,async (req, res) => {
+    app.get('/users/admin/:email',logger, verifyToken, async (req, res) => {
       const email = req.params.email;
       console.log(email);
       console.log('user email:',email,'decoded : ',req.decoded?.email);
