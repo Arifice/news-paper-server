@@ -37,6 +37,7 @@ async function run() {
     const usersCollection = client.db('AbcNews').collection('users');
     const cartCollection = client.db('AbcNews').collection('cart');
     const paymentsCollection = client.db('AbcNews').collection('payments');
+    const usersPaymentsCollection = client.db('AbcNews').collection('usersPayments');
     // jwt related api
 
     
@@ -44,7 +45,7 @@ async function run() {
 
     // middlewire
     const logger=async(req,res,next)=>{
-      // console.log('called:',req.host, req.method, req.url);
+      console.log('called:',req.host, req.method, req.url);
       next();
     }
     const verifyToken = (req, res, next) => {
@@ -99,7 +100,7 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/users', logger,verifyToken,verifyAdmin,async (req, res) => {
+    app.get('/users', logger,verifyToken,async (req, res) => {
       console.log(req.headers)
       const result = await usersCollection.find().toArray();
       res.send(result);
@@ -303,7 +304,7 @@ async function run() {
 
     //  cart related api
 
-    app.post('/cart', async (req, res) => {
+    app.post('/cart',verifyToken, async(req, res) => {
       const cartItem = req.body;
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
@@ -362,13 +363,39 @@ async function run() {
 
     });
 
+    
+
+    // for user
+    app.post('/payments/user',logger, async (req, res) => {
+      const payment = req.body;      
+      const paymentResult = await usersPaymentsCollection.insertOne(payment);
+      res.send({ paymentResult });
+    })
+    app.get('/payments/user',logger, async (req, res) => {
+      const result = await usersPaymentsCollection.find().toArray();
+      res.send(result);
+    })
+    app.get('/payments/user/:email',logger,verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await usersPaymentsCollection.find(query).toArray();
+      res.send(result);
+    })
+    app.get('/payments/user/:id',logger,verifyToken, async (req, res) => {
+      const id = req.params.email;
+      const query = {_id:new ObjectId(id) };
+      const result = await usersPaymentsCollection.findOne(query);
+      res.send(result);
+    })
+    app.delete('/payments/user/:id',logger,verifyToken, async (req, res) => {
+      const id = req.params.email;
+      const query = {_id:new ObjectId(id) };
+      const result = await usersPaymentsCollection.deleteOne(query);
+      res.send(result);
+    })
+    // for admin
     app.post('/payments',logger, async (req, res) => {
-      const payment = req.body;
-      // console.log({payment});
-      // const query={_id:{
-      //  $in: payment.cartIds.map(id=>new ObjectId(id)),
-      // }}
-      // const deleteResult=await cartCollection.deleteMany(query);
+      const payment = req.body;      
       const paymentResult = await paymentsCollection.insertOne(payment);
       res.send({ paymentResult });
     })
@@ -382,14 +409,14 @@ async function run() {
       const result = await paymentsCollection.findOne(query);
       res.send(result);
     })
-    app.delete('/payments/:id',logger, async (req, res) => {
+    app.delete('/payments/:id',logger,verifyToken,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await paymentsCollection.deleteOne(query);
       res.send(result);
     })
 
-    app.get('/stat',logger, async (req, res) => {
+    app.get('/stat',logger,verifyToken, async (req, res) => {
       const users = await usersCollection.estimatedDocumentCount();
       const articles = await articlesCollection.estimatedDocumentCount();
       const publishers = await publishersCollection.estimatedDocumentCount();
